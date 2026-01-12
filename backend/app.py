@@ -48,6 +48,25 @@ def crear_equipo_base():
         "mensaje": "Equipo base creado correctamente"
     })
 
+@app.route("/listar_equipos_base", methods=["GET"])
+def listar_equipos_base():
+    conn, cursor = conectar_db()
+    cursor.execute("SELECT id, nombre, tipo FROM equipos_base")
+    filas = cursor.fetchall()
+    conn.close()
+
+    equipos = []
+    for fila in filas:
+        equipos.append({
+            "id": fila[0],
+            "nombre": fila[1],
+            "tipo": fila[2]
+        })
+
+    return jsonify(equipos)
+
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
 
