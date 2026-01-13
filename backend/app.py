@@ -10,12 +10,14 @@ def conectar_db():
     conn = sqlite3.connect("simulador.db")
     cursor = conn.cursor()
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS equipos_base (
+        CREATE TABLE IF NOT EXISTS equipos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL,
-            tipo TEXT NOT NULL
+            base_id INTEGER NOT NULL,
+            tag TEXT NOT NULL,
+            FOREIGN KEY (base_id) REFERENCES equipos_base(id)
         )
     """)
+
     conn.commit()
     return conn, cursor
 
@@ -65,6 +67,36 @@ def listar_equipos_base():
 
     return jsonify(equipos)
 
+@app.route("/crear_equipo", methods=["POST"])
+def crear_equipo():
+    data = request.json
+
+    if not data or "base_id" not in data or "tag" not in data:
+        return jsonify({"error": "Faltan datos"}), 400
+
+    conn, cursor = conectar_db()
+
+    # Verificar que exista el equipo base
+    cursor.execute(
+        "SELECT id FROM equipos_base WHERE id = ?",
+        (data["base_id"],)
+    )
+    if not cursor.fetchone():
+        conn.close()
+        return jsonify({"error": "Equipo base no existe"}), 404
+
+    cursor.execute(
+        "INSERT INTO equipos (base_id, tag) VALUES (?, ?)",
+        (data["base_id"], data["tag"])
+    )
+    conn.commit()
+    nuevo_id = cursor.lastrowid
+    conn.close()
+
+    return jsonify({
+        "id": nuevo_id,
+        "mensaje": "Equipo creado correctamente"
+    })
 
 
 if __name__ == "__main__":
