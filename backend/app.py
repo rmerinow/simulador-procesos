@@ -67,6 +67,25 @@ def listar_equipos_base():
 
     return jsonify(equipos)
 
+@app.route("/listar_equipos", methods=["GET"])
+def listar_equipos():
+    conn, cursor = conectar_db()
+    cursor.execute("SELECT id, base_id, tag FROM equipos")
+    filas = cursor.fetchall()
+    conn.close()
+
+    equipos = []
+    for fila in filas:
+        equipos.append({
+            "id": fila[0],
+            "base_id": fila[1],
+            "tag": fila[2]
+        })
+
+    return jsonify(equipos)
+
+
+
 @app.route("/crear_equipo", methods=["POST"])
 def crear_equipo():
     data = request.json
